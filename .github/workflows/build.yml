@@ -1,0 +1,35 @@
+name: Build MySQL
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - run: |
+          sudo apt update
+          sudo apt install -y bison cmake
+      - name: Download Mysql Source and Extract
+        run: |
+          wget https://github.com/mysql/mysql-server/archive/refs/tags/mysql-cluster-8.0.33.tar.gz
+          tar -xf mysql-cluster-8.0.33.tar.gz
+      - run: |
+          mkdir -p mysql-server-mysql-cluster-8.0.33/build
+          cd mysql-server-mysql-cluster-8.0.33/build
+          cmake -DDOWNLOAD_BOOST=1 -DWITH_BOOST=boost ..
+          make
+          sudo make install
+      - name: Test on Apline
+        run: echo skip
+
+      - run: tar -czvf mysql.tar.gz /usr/local/mysql
+      - uses: actions/upload-artifact@v3
+        with:
+          path: mysql.tar.gz
+
+      - name: "[Delete me] tarball all lib for debug"
+        run: sudo tar -czvf lib.tar.gz /lib
+      - name: "[Delete me] upload all lib"
+        uses: actions/upload-artifact@v3
+        with:
+          path: lib.tar.gz
